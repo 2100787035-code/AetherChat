@@ -5,7 +5,7 @@ import com.aetherchat.core.crypto.KeystoreEncryptor
 import com.aetherchat.core.data.local.AetherChatDatabase
 import com.aetherchat.core.data.repository.ProviderRepositoryImpl
 import com.aetherchat.domain.model.ProviderRepository
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
