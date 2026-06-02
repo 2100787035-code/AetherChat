@@ -37,6 +37,9 @@ interface ModelDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(models: List<ModelEntity>)
 
+    @Update
+    suspend fun update(model: ModelEntity)
+
     @Delete
     suspend fun delete(model: ModelEntity)
 

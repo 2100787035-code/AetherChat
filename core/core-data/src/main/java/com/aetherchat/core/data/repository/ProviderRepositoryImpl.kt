@@ -90,8 +90,8 @@ class ProviderRepositoryImpl(
             baseUrl = entity.baseUrl,
             apiKey = apiKey,
         )
-        val models = llmProvider.listModels().getOrThrow()
-        for (model in models) {
+        val modelList: List<ModelInfo> = llmProvider.listModels().getOrThrow()
+        for (model: ModelInfo in modelList) {
             val existing = modelDao.getById(model.id, providerId)
             if (existing != null) {
                 modelDao.update(existing.copy(

@@ -26,6 +26,7 @@ android {
 dependencies {
     implementation(project(":domain:model"))
     implementation(project(":core:core-crypto"))
+    implementation(project(":core:core-network"))
 
     implementation(libs.androidx.core.ktx)
     api(libs.room.runtime)
