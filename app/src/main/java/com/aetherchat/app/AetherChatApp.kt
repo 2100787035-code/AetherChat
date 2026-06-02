@@ -5,6 +5,7 @@ import com.aetherchat.core.crypto.coreCryptoModule
 import com.aetherchat.core.data.coreDataModule
 import com.aetherchat.core.network.coreNetworkModule
 import com.aetherchat.domain.usecase.domainModule
+import com.aetherchat.feature.assistants.featureAssistantsModule
 import com.aetherchat.feature.chat.featureChatModule
 import com.aetherchat.feature.conversations.featureConversationsModule
 import com.aetherchat.feature.providers.featureProvidersModule
@@ -25,6 +26,7 @@ class AetherChatApp : Application() {
                 coreNetworkModule,
                 domainModule,
                 featureProvidersModule,
+                featureAssistantsModule,
                 featureChatModule,
                 featureConversationsModule,
                 featureSettingsModule,
