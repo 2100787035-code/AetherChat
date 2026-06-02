@@ -115,7 +115,7 @@ class ProviderRepositoryImpl(
                 ))
             }
         }
-        models
+        modelList
     }
 
     override suspend fun setModelEnabled(providerId: String, modelId: String, enabled: Boolean): Result<Unit> = runCatching {
