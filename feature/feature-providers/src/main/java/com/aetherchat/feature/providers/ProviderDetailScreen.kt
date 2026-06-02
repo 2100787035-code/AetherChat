@@ -294,8 +294,8 @@ private fun ModelRow(
                 text = item.model.displayName,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            if (item.model.contextWindow != null) {
-                val contextWindow = item.model.contextWindow
+            val contextWindow = item.model.contextWindow
+            if (contextWindow != null) {
                 Text(
                     text = "${contextWindow / 1000}k",
                     style = MaterialTheme.typography.bodySmall,
