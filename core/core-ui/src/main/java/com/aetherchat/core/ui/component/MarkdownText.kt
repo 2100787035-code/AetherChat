@@ -2,6 +2,7 @@ package com.aetherchat.core.ui.component
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aetherchat.core.ui.theme.AppSpacing
 
 @Composable
@@ -94,19 +96,19 @@ private fun parseMarkdown(text: String): androidx.compose.ui.text.AnnotatedStrin
                     codeBlockContent.append("\n")
                 }
                 line.startsWith("### ") -> {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleMedium.fontSize)) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp)) {
                         append(line.removePrefix("### "))
                     }
                     append("\n")
                 }
                 line.startsWith("## ") -> {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleLarge.fontSize)) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp)) {
                         append(line.removePrefix("## "))
                     }
                     append("\n")
                 }
                 line.startsWith("# ") -> {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineMedium.fontSize)) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
                         append(line.removePrefix("# "))
                     }
                     append("\n")
@@ -135,9 +137,4 @@ private fun parseMarkdown(text: String): androidx.compose.ui.text.AnnotatedStrin
             }
         }
     }
-}
-
-@Composable
-private fun Column(modifier: Modifier, content: @Composable () -> Unit) {
-    androidx.compose.foundation.layout.Column(modifier = modifier, content = content)
 }
