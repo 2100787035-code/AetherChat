@@ -55,7 +55,7 @@ data class ConversationEntity(
 @Entity(
     tableName = "messages",
     foreignKeys = [ForeignKey(
-        entity = ConversationEntity.class,
+        entity = ConversationEntity::class,
         parentColumns = ["id"],
         childColumns = ["conversationId"],
         onDelete = ForeignKey.CASCADE
