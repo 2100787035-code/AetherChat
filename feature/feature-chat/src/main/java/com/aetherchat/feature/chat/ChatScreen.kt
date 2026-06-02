@@ -182,7 +182,7 @@ private fun ChatInputBar(
     onStop: () -> Unit,
 ) {
     Surface(
-        tonalElevation = androidx.compose.material3.CardDefaults.cardElevation(),
+        tonalElevation = 2.dp,
     ) {
         Column(
             modifier = Modifier

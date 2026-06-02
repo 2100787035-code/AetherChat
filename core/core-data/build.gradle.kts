@@ -32,8 +32,11 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.sqlcipher)
+    implementation("androidx.sqlite:sqlite:2.4.0")
     implementation(libs.datastore.proto)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.okhttp)
 }

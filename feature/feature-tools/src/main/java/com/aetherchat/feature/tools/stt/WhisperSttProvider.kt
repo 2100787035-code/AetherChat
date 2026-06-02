@@ -2,6 +2,10 @@ package com.aetherchat.feature.tools.stt
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -32,6 +36,8 @@ class WhisperSttProvider(
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     override suspend fun transcribe(audioFile: File, language: String?): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
@@ -57,8 +63,8 @@ class WhisperSttProvider(
                 }
 
                 val body = response.body?.string() ?: throw Exception("Empty response")
-                val json = kotlinx.serialization.json.Json.parseToJsonElement(body)
-                json.jsonObject["text"]?.jsonPrimitive?.content ?: throw Exception("No text in response")
+                val root = json.parseToJsonElement(body).jsonObject
+                root["text"]?.jsonPrimitive?.contentOrNull ?: throw Exception("No text in response")
             }
         }
 

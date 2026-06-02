@@ -43,7 +43,7 @@ class SearxngSearchProvider(
 
                 val body = response.body?.string() ?: throw Exception("Empty response")
                 val root = json.parseToJsonElement(body).jsonObject
-                val results = root["results"]?.jsonArray ?: return@withContext emptyList()
+                val results = root["results"]?.jsonArray ?: return@runCatching emptyList()
 
                 results.mapNotNull { element ->
                     val obj = element.jsonObject

@@ -6,6 +6,13 @@ import com.aetherchat.domain.model.TTSProvider
 import com.aetherchat.domain.model.VoiceInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
 
 class OpenAITTSProvider(
     private val apiKey: String,
@@ -27,12 +34,12 @@ class OpenAITTSProvider(
     )
 
     override fun synthesizeStream(text: String, config: TTSConfig): Flow<ByteArray> = flow {
-        val client = okhttp3.OkHttpClient.Builder()
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
             .build()
 
-        val requestBody = kotlinx.serialization.json.buildJsonObject {
+        val requestBody = buildJsonObject {
             put("model", "tts-1")
             put("input", text)
             put("voice", config.voice)
@@ -40,7 +47,7 @@ class OpenAITTSProvider(
             put("response_format", config.outputFormat.name.lowercase())
         }
 
-        val request = okhttp3.Request.Builder()
+        val request = Request.Builder()
             .url("${baseUrl}/audio/speech")
             .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("Content-Type", "application/json")
@@ -53,10 +60,10 @@ class OpenAITTSProvider(
     }
 
     override suspend fun testConnection(): Result<Unit> = runCatching {
-        val client = okhttp3.OkHttpClient.Builder()
-            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
             .build()
-        val request = okhttp3.Request.Builder()
+        val request = Request.Builder()
             .url("${baseUrl}/models")
             .addHeader("Authorization", "Bearer $apiKey")
             .get()
@@ -65,10 +72,3 @@ class OpenAITTSProvider(
         if (!response.isSuccessful) throw Exception("HTTP ${response.code}")
     }
 }
-
-private fun String.toRequestBody(contentType: String): okhttp3.RequestBody {
-    return okhttp3.RequestBody.create(contentType.toMediaType(), this.toByteArray())
-}
-
-private fun String.toMediaType(): okhttp3.MediaType =
-    okhttp3.MediaType.Companion.parse(this)!!

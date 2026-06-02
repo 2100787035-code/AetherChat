@@ -166,7 +166,7 @@ private fun ConversationRow(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = AppShape.Card,
-        tonalElevation = androidx.compose.material3.CardDefaults.cardElevation(),
+        tonalElevation = 2.dp,
     ) {
         Column(
             modifier = Modifier
