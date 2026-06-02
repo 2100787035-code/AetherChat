@@ -97,3 +97,21 @@ interface MessageDao {
     @Query("SELECT * FROM messages WHERE id = :id")
     suspend fun getById(id: String): MessageEntity?
 }
+
+@Dao
+interface AssistantDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(assistant: AssistantEntity)
+
+    @Update
+    suspend fun update(assistant: AssistantEntity)
+
+    @Delete
+    suspend fun delete(assistant: AssistantEntity)
+
+    @Query("SELECT * FROM assistants ORDER BY createdAt DESC")
+    fun getAll(): Flow<List<AssistantEntity>>
+
+    @Query("SELECT * FROM assistants WHERE id = :id")
+    suspend fun getById(id: String): AssistantEntity?
+}

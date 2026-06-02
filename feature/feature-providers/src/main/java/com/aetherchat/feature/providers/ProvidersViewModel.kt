@@ -13,13 +13,11 @@ import com.aetherchat.domain.model.ProviderType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProvidersViewModel(
     private val providerRepository: ProviderRepository,
-    private val encryptor: KeystoreEncryptor,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProvidersUiState())
@@ -29,15 +27,23 @@ class ProvidersViewModel(
         loadProviders()
     }
 
-    fun loadProviders() {
+    private fun loadProviders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                providerRepository.getAllEnabledModels().collect { _ ->
+                providerRepository.getAllProviders().collect { providers ->
+                    val items = providers.map { provider ->
+                        val preset = PROVIDER_PRESETS.find { it.type == provider.type }
+                        ProviderItem(
+                            provider = provider,
+                            iconEmoji = preset?.iconEmoji ?: "⚙️",
+                        )
+                    }
+                    _uiState.update { it.copy(providers = items, isLoading = false) }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -51,6 +57,10 @@ class ProvidersViewModel(
         viewModelScope.launch {
             providerRepository.deleteProvider(id)
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }
 
@@ -84,6 +94,44 @@ class AddProviderViewModel(
         val type = state.selectedType ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isTesting = true, testResult = null) }
+            val config = ProviderConfig(
+                type = type,
+                name = PROVIDER_PRESETS.find { it.type == type }?.displayName ?: "Custom",
+                baseUrl = state.baseUrl,
+                apiKey = state.apiKey,
+            )
+            val addResult = providerRepository.addProvider(config)
+            if (addResult.isFailure) {
+                _uiState.update {
+                    it.copy(
+                        isTesting = false,
+                        testResult = TestConnectionResult(
+                            success = false,
+                            errorMessage = addResult.exceptionOrNull()?.message,
+                        ),
+                    )
+                }
+                return@launch
+            }
+            val provider = addResult.getOrThrow()
+            val testResult = providerRepository.testProviderConnection(provider.id)
+            _uiState.update {
+                it.copy(
+                    isTesting = false,
+                    testResult = testResult.getOrNull()?.let { info ->
+                        TestConnectionResult(
+                            success = true,
+                            latencyMs = info.latencyMs,
+                            modelCount = info.availableModelCount,
+                        )
+                    } ?: TestConnectionResult(
+                        success = false,
+                        errorMessage = testResult.exceptionOrNull()?.message,
+                    ),
+                    savedProviderId = provider.id,
+                )
+            }
+            providerRepository.deleteProvider(provider.id)
         }
     }
 
@@ -102,7 +150,9 @@ class AddProviderViewModel(
                 )
             )
             if (result.isSuccess) {
-                _uiState.update { it.copy(isSaving = false) }
+                val providerId = result.getOrThrow().id
+                providerRepository.fetchModels(providerId)
+                _uiState.update { it.copy(isSaving = false, savedProviderId = providerId) }
             } else {
                 _uiState.update {
                     it.copy(
@@ -130,9 +180,6 @@ class ProviderDetailViewModel(
     private val _modelsState = MutableStateFlow(ModelsTabUiState())
     val modelsState: StateFlow<ModelsTabUiState> = _modelsState.asStateFlow()
 
-    private val _advancedState = MutableStateFlow(AdvancedTabUiState())
-    val advancedState: StateFlow<AdvancedTabUiState> = _advancedState.asStateFlow()
-
     private val _addModelState = MutableStateFlow(AddModelUiState())
     val addModelState: StateFlow<AddModelUiState> = _addModelState.asStateFlow()
 
@@ -146,12 +193,15 @@ class ProviderDetailViewModel(
 
     private fun loadProvider() {
         viewModelScope.launch {
-            try {
-                val dao = (providerRepository as? com.aetherchat.core.data.repository.ProviderRepositoryImpl)
-                val entity = dao?.let {
-                    it::class.java.getDeclaredMethod("getProviderEntity", String::class.java)
+            val provider = providerRepository.getProviderById(currentProviderId)
+            if (provider != null) {
+                val preset = PROVIDER_PRESETS.find { it.type == provider.type }
+                _uiState.update {
+                    it.copy(
+                        provider = provider,
+                        iconEmoji = preset?.iconEmoji ?: "⚙️",
+                    )
                 }
-            } catch (_: Exception) {
             }
         }
     }
@@ -159,7 +209,9 @@ class ProviderDetailViewModel(
     private fun loadModels() {
         viewModelScope.launch {
             providerRepository.getEnabledModels(currentProviderId).collect { models ->
-                _modelsState.update { it.copy(autoModels = models.map { ModelItem(model = it) }) }
+                _modelsState.update {
+                    it.copy(autoModels = models.map { ModelItem(model = it) })
+                }
             }
         }
     }
@@ -170,6 +222,15 @@ class ProviderDetailViewModel(
 
     fun toggleApiKeyVisibility() {
         _uiState.update { it.copy(apiKeyVisible = !_uiState.value.apiKeyVisible) }
+    }
+
+    fun getDecryptedApiKey(): String {
+        val encrypted = _uiState.value.provider?.apiKeyEncrypted ?: return ""
+        return try {
+            encryptor.decrypt(encrypted)
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     fun testConnection() {

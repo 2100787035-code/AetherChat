@@ -55,7 +55,7 @@ data class ConversationEntity(
 @Entity(
     tableName = "messages",
     foreignKeys = [ForeignKey(
-        entity = ConversationEntity::class,
+        entity = ConversationEntity.class,
         parentColumns = ["id"],
         childColumns = ["conversationId"],
         onDelete = ForeignKey.CASCADE
@@ -74,4 +74,17 @@ data class MessageEntity(
     val outputTokens: Int?,
     val createdAt: Long,
     val status: MessageStatus,
+)
+
+@Entity(tableName = "assistants")
+data class AssistantEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val iconEmoji: String = "🤖",
+    val systemPrompt: String = "",
+    val providerId: String?,
+    val modelId: String?,
+    val temperature: Float = 0.7f,
+    val createdAt: Long,
+    val updatedAt: Long,
 )

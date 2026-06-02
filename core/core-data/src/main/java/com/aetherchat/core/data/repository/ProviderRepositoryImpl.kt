@@ -4,13 +4,13 @@ import com.aetherchat.core.crypto.KeystoreEncryptor
 import com.aetherchat.core.data.local.AetherChatDatabase
 import com.aetherchat.core.data.local.ModelEntity
 import com.aetherchat.core.data.local.ProviderEntity
+import com.aetherchat.core.network.provider.OpenAICompatProvider
 import com.aetherchat.domain.model.ConnectionInfo
 import com.aetherchat.domain.model.ModelInfo
 import com.aetherchat.domain.model.ModelTestResult
 import com.aetherchat.domain.model.Provider
 import com.aetherchat.domain.model.ProviderConfig
 import com.aetherchat.domain.model.ProviderRepository
-import com.aetherchat.domain.model.ProviderType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -22,6 +22,16 @@ class ProviderRepositoryImpl(
 
     private val providerDao = database.providerDao()
     private val modelDao = database.modelDao()
+
+    override fun getAllProviders(): Flow<List<Provider>> {
+        return providerDao.getAll().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getProviderById(id: String): Provider? {
+        return providerDao.getById(id)?.toDomain()
+    }
 
     override suspend fun addProvider(config: ProviderConfig): Result<Provider> = runCatching {
         val id = UUID.randomUUID().toString()
@@ -59,20 +69,69 @@ class ProviderRepositoryImpl(
         providerDao.update(entity.copy(isEnabled = enabled))
     }
 
-    override suspend fun testProviderConnection(id: String): Result<ConnectionInfo> {
-        return Result.failure(NotImplementedError("Use LLMProvider.testConnection()"))
+    override suspend fun testProviderConnection(id: String): Result<ConnectionInfo> = runCatching {
+        val entity = providerDao.getById(id) ?: throw NoSuchElementException("Provider not found")
+        val apiKey = encryptor.decrypt(entity.apiKeyEncrypted)
+        val llmProvider = OpenAICompatProvider(
+            id = entity.id,
+            displayName = entity.name,
+            baseUrl = entity.baseUrl,
+            apiKey = apiKey,
+        )
+        llmProvider.testConnection().getOrThrow()
     }
 
-    override suspend fun fetchModels(providerId: String): Result<List<ModelInfo>> {
-        return Result.failure(NotImplementedError("Use LLMProvider.listModels()"))
+    override suspend fun fetchModels(providerId: String): Result<List<ModelInfo>> = runCatching {
+        val entity = providerDao.getById(providerId) ?: throw NoSuchElementException("Provider not found")
+        val apiKey = encryptor.decrypt(entity.apiKeyEncrypted)
+        val llmProvider = OpenAICompatProvider(
+            id = entity.id,
+            displayName = entity.name,
+            baseUrl = entity.baseUrl,
+            apiKey = apiKey,
+        )
+        val models = llmProvider.listModels().getOrThrow()
+        for (model in models) {
+            val existing = modelDao.getById(model.id, providerId)
+            if (existing != null) {
+                modelDao.update(existing.copy(
+                    displayName = model.displayName,
+                    contextWindow = model.contextWindow ?: existing.contextWindow,
+                    supportVision = model.supportVision || existing.supportVision,
+                    supportFunctionCall = model.supportFunctionCall || existing.supportFunctionCall,
+                ))
+            } else {
+                modelDao.insert(ModelEntity(
+                    id = model.id,
+                    providerId = providerId,
+                    displayName = model.displayName,
+                    contextWindow = model.contextWindow,
+                    supportVision = model.supportVision,
+                    supportFunctionCall = model.supportFunctionCall,
+                    isEnabled = true,
+                    isCustom = false,
+                    lastTestedAt = null,
+                    lastTestResult = null,
+                ))
+            }
+        }
+        models
     }
 
     override suspend fun setModelEnabled(providerId: String, modelId: String, enabled: Boolean): Result<Unit> = runCatching {
         modelDao.setEnabled(modelId, providerId, enabled)
     }
 
-    override suspend fun testModelConnection(providerId: String, modelId: String): Result<ModelTestResult> {
-        return Result.failure(NotImplementedError("Use LLMProvider.testModel()"))
+    override suspend fun testModelConnection(providerId: String, modelId: String): Result<ModelTestResult> = runCatching {
+        val entity = providerDao.getById(providerId) ?: throw NoSuchElementException("Provider not found")
+        val apiKey = encryptor.decrypt(entity.apiKeyEncrypted)
+        val llmProvider = OpenAICompatProvider(
+            id = entity.id,
+            displayName = entity.name,
+            baseUrl = entity.baseUrl,
+            apiKey = apiKey,
+        )
+        llmProvider.testModel(modelId).getOrThrow()
     }
 
     override suspend fun addCustomModel(providerId: String, model: ModelInfo): Result<Unit> = runCatching {
@@ -102,7 +161,9 @@ class ProviderRepositoryImpl(
     }
 
     override fun getAllEnabledModels(): Flow<Map<String, List<ModelInfo>>> {
-        return modelDao.getByProviderId("").map { emptyMap() }
+        return providerDao.getAll().map { providers ->
+            emptyMap()
+        }
     }
 
     private fun ProviderEntity.toDomain() = Provider(

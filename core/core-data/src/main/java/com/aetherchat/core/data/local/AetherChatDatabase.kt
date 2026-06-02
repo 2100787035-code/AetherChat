@@ -10,8 +10,9 @@ import androidx.room.TypeConverters
         ModelEntity::class,
         ConversationEntity::class,
         MessageEntity::class,
+        AssistantEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -20,4 +21,5 @@ abstract class AetherChatDatabase : RoomDatabase() {
     abstract fun modelDao(): ModelDao
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
+    abstract fun assistantDao(): AssistantDao
 }

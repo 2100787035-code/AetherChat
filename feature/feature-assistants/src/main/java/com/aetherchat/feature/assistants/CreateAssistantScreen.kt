@@ -34,7 +34,7 @@ import com.aetherchat.core.ui.theme.AppSpacing
 @Composable
 fun CreateAssistantScreen(
     viewModel: CreateAssistantViewModel,
-    onCreated: (Assistant) -> Unit,
+    onCreated: () -> Unit,
     onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -128,8 +128,8 @@ fun CreateAssistantScreen(
 
             Button(
                 onClick = {
-                    val assistant = viewModel.createAssistant()
-                    onCreated(assistant)
+                    viewModel.createAssistant()
+                    onCreated()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = AppShape.Button,

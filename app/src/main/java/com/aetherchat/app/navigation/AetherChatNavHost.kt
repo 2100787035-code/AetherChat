@@ -59,7 +59,8 @@ fun AetherChatNavHost(
                     navController.navigate(ChatRoute(id))
                 },
                 onNavigateToSettings = { navController.navigate(SettingsRoute) },
-                onNavigateToAbout = { },
+                onNavigateToProviders = { navController.navigate(ProvidersRoute) },
+                onNavigateToAssistants = { navController.navigate(AssistantsRoute) },
             )
         }
         composable<ChatRoute> { backStackEntry ->
@@ -75,8 +76,9 @@ fun AetherChatNavHost(
             val viewModel: ProvidersViewModel = koinViewModel()
             ProvidersScreen(
                 viewModel = viewModel,
-                onNavigateToAdd = { navController.navigate(AddProviderRoute) },
-                onNavigateToDetail = { id -> navController.navigate(ProviderDetailRoute(id)) },
+                onAddProvider = { navController.navigate(AddProviderRoute) },
+                onProviderClick = { id -> navController.navigate(ProviderDetailRoute(id)) },
+                onBack = { navController.popBackStack() },
             )
         }
         composable<AddProviderRoute> {

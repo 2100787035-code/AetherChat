@@ -3,6 +3,8 @@ package com.aetherchat.domain.model
 import kotlinx.coroutines.flow.Flow
 
 interface ProviderRepository {
+    fun getAllProviders(): Flow<List<Provider>>
+    suspend fun getProviderById(id: String): Provider?
     suspend fun addProvider(config: ProviderConfig): Result<Provider>
     suspend fun updateProvider(provider: Provider): Result<Unit>
     suspend fun deleteProvider(id: String): Result<Unit>

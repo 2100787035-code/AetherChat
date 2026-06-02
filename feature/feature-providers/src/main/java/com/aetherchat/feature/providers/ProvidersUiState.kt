@@ -2,7 +2,6 @@ package com.aetherchat.feature.providers
 
 import com.aetherchat.domain.model.ModelInfo
 import com.aetherchat.domain.model.Provider
-import com.aetherchat.domain.model.ProviderPreset
 import com.aetherchat.domain.model.ProviderType
 
 data class ProvidersUiState(
@@ -24,6 +23,7 @@ data class AddProviderUiState(
     val isTesting: Boolean = false,
     val testResult: TestConnectionResult? = null,
     val isSaving: Boolean = false,
+    val savedProviderId: String? = null,
     val errorMessage: String? = null,
 )
 
@@ -36,6 +36,7 @@ data class TestConnectionResult(
 
 data class ProviderDetailUiState(
     val provider: Provider? = null,
+    val iconEmoji: String = "⚙️",
     val selectedTab: DetailTab = DetailTab.BASIC,
     val apiKeyVisible: Boolean = false,
     val isTestingConnection: Boolean = false,

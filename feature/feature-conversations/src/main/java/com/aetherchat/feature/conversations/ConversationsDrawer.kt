@@ -56,7 +56,8 @@ fun ConversationsDrawer(
     onConversationClick: (String) -> Unit,
     onNewConversation: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToAbout: () -> Unit,
+    onNavigateToProviders: () -> Unit,
+    onNavigateToAssistants: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -221,6 +222,30 @@ fun ConversationsDrawer(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable(onClick = onNavigateToProviders)
+                .padding(vertical = AppSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🔌", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.padding(horizontal = AppSpacing.sm))
+            Text("提供商管理", style = MaterialTheme.typography.bodyLarge)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToAssistants)
+                .padding(vertical = AppSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🤖", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.padding(horizontal = AppSpacing.sm))
+            Text("助手管理", style = MaterialTheme.typography.bodyLarge)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
                 .clickable(onClick = onNavigateToSettings)
                 .padding(vertical = AppSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
@@ -228,18 +253,6 @@ fun ConversationsDrawer(
             Text("⚙️", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.padding(horizontal = AppSpacing.sm))
             Text("设置", style = MaterialTheme.typography.bodyLarge)
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onNavigateToAbout)
-                .padding(vertical = AppSpacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("👤", style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.padding(horizontal = AppSpacing.sm))
-            Text("关于", style = MaterialTheme.typography.bodyLarge)
         }
     }
 

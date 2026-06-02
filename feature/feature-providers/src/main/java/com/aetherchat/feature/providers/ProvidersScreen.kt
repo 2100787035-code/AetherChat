@@ -1,27 +1,19 @@
 package com.aetherchat.feature.providers
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,8 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.aetherchat.core.ui.theme.AppShape
 import com.aetherchat.core.ui.theme.AppSpacing
 
@@ -43,101 +33,118 @@ import com.aetherchat.core.ui.theme.AppSpacing
 @Composable
 fun ProvidersScreen(
     viewModel: ProvidersViewModel,
-    onNavigateToAdd: () -> Unit,
-    onNavigateToDetail: (String) -> Unit,
+    onAddProvider: () -> Unit,
+    onProviderClick: (String) -> Unit,
+    onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("模型提供商") },
-                actions = {
-                    IconButton(onClick = onNavigateToAdd) {
-                        Text("+", style = MaterialTheme.typography.headlineMedium)
+                title = { Text("提供商管理") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.headlineMedium)
                     }
                 },
             )
         },
     ) { padding ->
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            Button(
+                onClick = onAddProvider,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.md),
+                shape = AppShape.Button,
             ) {
-                Text("加载中…")
+                Text("＋  添加提供商")
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(AppSpacing.md),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-            ) {
-                items(uiState.providers, key = { it.provider.id }) { item ->
-                    ProviderCard(
-                        item = item,
-                        onClick = { onNavigateToDetail(item.provider.id) },
-                        onToggle = { viewModel.setProviderEnabled(item.provider.id, it) },
-                    )
+
+            if (uiState.isLoading) {
+                Text(
+                    "加载中…",
+                    modifier = Modifier.padding(AppSpacing.md),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else if (uiState.providers.isEmpty()) {
+                Text(
+                    "暂无提供商，点击上方按钮添加",
+                    modifier = Modifier.padding(AppSpacing.md),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                LazyColumn {
+                    items(uiState.providers, key = { it.provider.id }) { item ->
+                        ProviderRow(
+                            item = item,
+                            onToggle = { viewModel.setProviderEnabled(item.provider.id, it) },
+                            onClick = { onProviderClick(item.provider.id) },
+                            onDelete = { viewModel.deleteProvider(item.provider.id) },
+                        )
+                        HorizontalDivider()
+                    }
                 }
+            }
+
+            uiState.errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(AppSpacing.md),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ProviderCard(
+private fun ProviderRow(
     item: ProviderItem,
-    onClick: () -> Unit,
     onToggle: (Boolean) -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val alpha = if (item.provider.isEnabled) 1f else 0.5f
-
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm)
             .alpha(alpha),
-        shape = AppShape.Card,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppSpacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Text(
+            text = item.iconEmoji,
+            style = MaterialTheme.typography.headlineMedium,
+        )
+        Spacer(modifier = Modifier.width(AppSpacing.md))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = item.iconEmoji,
-                style = MaterialTheme.typography.headlineMedium,
+                text = item.provider.name,
+                style = MaterialTheme.typography.bodyLarge,
             )
-            Spacer(modifier = Modifier.width(AppSpacing.md))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.provider.name,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                if (item.provider.apiKeyEncrypted.isBlank()) {
-                    Text(
-                        text = "未配置 API Key",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    Text(
-                        text = "${item.enabledModelCount} 个模型已启用",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Switch(
-                checked = item.provider.isEnabled,
-                onCheckedChange = onToggle,
+            Text(
+                text = item.provider.type.name,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        Text(
+            "🗑️",
+            modifier = Modifier
+                .clickable(onClick = onDelete)
+                .padding(horizontal = AppSpacing.xs),
+        )
+        Switch(
+            checked = item.provider.isEnabled,
+            onCheckedChange = onToggle,
+        )
     }
 }

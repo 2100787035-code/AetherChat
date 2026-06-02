@@ -1,6 +1,6 @@
 package com.aetherchat.feature.providers
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.draw.alpha
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,10 +35,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import com.aetherchat.core.ui.theme.AppShape
 import com.aetherchat.core.ui.theme.AppSpacing
 
@@ -53,19 +54,20 @@ fun ProviderDetailScreen(
     val addModelState by viewModel.addModelState.collectAsState()
     var showAddModelSheet by remember { mutableStateOf(false) }
 
+    LaunchedEffect(providerId) {
+        viewModel.init(providerId)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(uiState.provider?.name ?: "Provider")
+                    Text("${uiState.iconEmoji} ${uiState.provider?.name ?: "Provider"}")
                 },
                 navigationIcon = {
-                    Text(
-                        "←",
-                        modifier = Modifier
-                            .padding(AppSpacing.md),
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.headlineMedium)
+                    }
                 },
             )
         },
@@ -128,8 +130,14 @@ private fun BasicConfigTab(
             .fillMaxSize()
             .padding(AppSpacing.md),
     ) {
+        val apiKeyDisplay = if (uiState.apiKeyVisible) {
+            viewModel.getDecryptedApiKey()
+        } else {
+            "••••••••••••"
+        }
+
         OutlinedTextField(
-            value = "••••••••••••",
+            value = apiKeyDisplay,
             onValueChange = {},
             label = { Text("API Key") },
             modifier = Modifier.fillMaxWidth(),
@@ -137,10 +145,11 @@ private fun BasicConfigTab(
             visualTransformation = if (uiState.apiKeyVisible) VisualTransformation.None
             else PasswordVisualTransformation(),
             trailingIcon = {
-                Text(
-                    if (uiState.apiKeyVisible) "🙈" else "👁️",
-                    modifier = Modifier.padding(end = AppSpacing.sm),
-                )
+                IconButton(onClick = viewModel::toggleApiKeyVisibility) {
+                    Text(
+                        if (uiState.apiKeyVisible) "🙈" else "👁️",
+                    )
+                }
             },
             shape = AppShape.InputField,
         )
@@ -183,16 +192,6 @@ private fun BasicConfigTab(
                 color = if (result.success) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.error,
             )
-        }
-
-        Spacer(modifier = Modifier.height(AppSpacing.md))
-
-        Button(
-            onClick = { },
-            modifier = Modifier.fillMaxWidth(),
-            shape = AppShape.Button,
-        ) {
-            Text("保存配置")
         }
     }
 }
@@ -296,8 +295,9 @@ private fun ModelRow(
             )
             val contextWindow = item.model.contextWindow
             if (contextWindow != null) {
+                val cw = contextWindow / 1000
                 Text(
-                    text = "${contextWindow / 1000}k",
+                    text = "${cw}k",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -318,7 +318,9 @@ private fun ModelRow(
         } else {
             Text(
                 "🔗",
-                modifier = Modifier.padding(horizontal = AppSpacing.xs),
+                modifier = Modifier
+                    .clickable(onClick = onTest)
+                    .padding(horizontal = AppSpacing.xs),
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(modifier = Modifier.width(AppSpacing.xs))
@@ -326,7 +328,9 @@ private fun ModelRow(
         onDelete?.let {
             Text(
                 "🗑️",
-                modifier = Modifier.padding(horizontal = AppSpacing.xs),
+                modifier = Modifier
+                    .clickable(onClick = it)
+                    .padding(horizontal = AppSpacing.xs),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
