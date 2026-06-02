@@ -21,13 +21,6 @@ data class AssistantsUiState(
     val errorMessage: String? = null,
 )
 
-data class AssistantDetailUiState(
-    val assistant: Assistant? = null,
-    val isEditing: Boolean = false,
-    val isSaving: Boolean = false,
-    val errorMessage: String? = null,
-)
-
 data class CreateAssistantUiState(
     val name: String = "",
     val iconEmoji: String = "🤖",

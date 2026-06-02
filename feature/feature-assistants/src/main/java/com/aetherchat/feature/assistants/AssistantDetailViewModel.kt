@@ -51,8 +51,9 @@ class AssistantDetailViewModel(
                     )
                 }
                 loadProviders()
-                if (assistant.providerId != null) {
-                    loadModels(assistant.providerId)
+                val providerId = assistant.providerId
+                if (providerId != null) {
+                    loadModels(providerId)
                 }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "助手不存在") }
