@@ -10,6 +10,8 @@ import com.aetherchat.feature.chat.featureChatModule
 import com.aetherchat.feature.conversations.featureConversationsModule
 import com.aetherchat.feature.providers.featureProvidersModule
 import com.aetherchat.feature.settings.featureSettingsModule
+import com.aetherchat.feature.tools.featureToolsModule
+import com.aetherchat.feature.tts.featureTtsModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -30,6 +32,8 @@ class AetherChatApp : Application() {
                 featureChatModule,
                 featureConversationsModule,
                 featureSettingsModule,
+                featureTtsModule,
+                featureToolsModule,
             )
         }
     }
