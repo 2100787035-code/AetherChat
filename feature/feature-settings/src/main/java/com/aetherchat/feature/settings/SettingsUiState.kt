@@ -1,18 +1,50 @@
 package com.aetherchat.feature.settings
 
+import com.aetherchat.domain.model.ModelInfo
+
 data class SettingsUiState(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val defaultProviderId: String = "",
+    val defaultModelId: String = "",
+    val availableProviders: List<ProviderInfo> = emptyList(),
+    val availableModels: List<ModelInfo> = emptyList(),
+    val webSearchEnabled: Boolean = false,
+    val webSearchEngine: String = "searxng",
+    val searxngUrl: String = "",
+    val sttEnabled: Boolean = false,
+    val sttProvider: String = "openai_whisper",
+    val sttApiKey: String = "",
+    val sttBaseUrl: String = "https://api.openai.com/v1",
+    val sttModel: String = "whisper-1",
+    val ttsEnabled: Boolean = false,
+    val ttsProvider: String = "openai_tts",
+    val ttsApiKey: String = "",
+    val ttsBaseUrl: String = "https://api.openai.com/v1",
+    val ttsVoice: String = "alloy",
+    val ttsSpeed: Float = 1.0f,
+    val webdavEnabled: Boolean = false,
+    val webdavServerUrl: String = "",
+    val webdavUsername: String = "",
+    val webdavPassword: String = "",
+    val webdavRemotePath: String = "/AetherChat/",
+    val webdavAutoSync: Boolean = false,
+    val webdavSyncIntervalMinutes: Int = 30,
+    val themeMode: String = "system",
     val dynamicColorEnabled: Boolean = true,
-    val fontSizeLevel: FontSizeLevel = FontSizeLevel.STANDARD,
-    val ttsService: String = "OpenAI",
-    val ttsVoice: String = "Alloy",
-    val ttsSpeed: String = "1.0x",
-    val autoReadEnabled: Boolean = false,
-    val defaultModel: String = "MiMo-7B",
-    val streamEnabled: Boolean = true,
-    val sendMethod: SendMethod = SendMethod.ENTER,
+    val fontSize: Int = 16,
+    val sendOnEnter: Boolean = true,
+    val showTokenCount: Boolean = true,
+    val streamResponse: Boolean = true,
+    val isLoading: Boolean = false,
+    val isSyncing: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null,
+    val appVersion: String = "0.0.1",
 )
 
-enum class ThemeMode(val label: String) { SYSTEM("跟随系统"), LIGHT("浅色"), DARK("深色") }
-enum class FontSizeLevel(val label: String) { SMALL("小"), STANDARD("标准"), LARGE("大"), EXTRA_LARGE("特大") }
-enum class SendMethod(val label: String) { ENTER("按下发送"), CTRL_ENTER("Ctrl+Enter 发送") }
+data class ProviderInfo(
+    val id: String,
+    val name: String,
+    val type: String,
+    val isEnabled: Boolean,
+    val modelCount: Int,
+)

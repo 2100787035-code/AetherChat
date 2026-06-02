@@ -1,5 +1,7 @@
 package com.aetherchat.core.data
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.aetherchat.core.data.local.AetherChatDatabase
 import com.aetherchat.core.data.repository.ProviderRepositoryImpl
@@ -9,6 +11,10 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val coreDataModule = module {
+    single<SharedPreferences> {
+        androidContext().getSharedPreferences("aetherchat_settings", Context.MODE_PRIVATE)
+    }
+
     single<AetherChatDatabase> {
         System.loadLibrary("sqlcipher")
         val passphrase = "aetherchat_db_key_2026".toByteArray()
