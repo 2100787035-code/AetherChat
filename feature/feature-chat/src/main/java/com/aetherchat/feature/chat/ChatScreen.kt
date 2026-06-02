@@ -208,12 +208,12 @@ private fun MessageBubble(
         ) {
             Surface(
                 shape = AppShape.UserBubble,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.fillMaxWidth(AppSpacing.maxBubbleWidthFraction),
             ) {
                 Text(
                     text = item.content,
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
                 )
@@ -225,10 +225,16 @@ private fun MessageBubble(
             Spacer(modifier = Modifier.height(AppSpacing.xs))
             val displayText = streamingText ?: item.content
             if (displayText.isNotBlank()) {
-                MarkdownText(
-                    text = displayText,
-                    modifier = Modifier.padding(end = AppSpacing.md),
-                )
+                Surface(
+                    shape = AppShape.AssistantBubble,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(AppSpacing.maxBubbleWidthFraction),
+                ) {
+                    MarkdownText(
+                        text = displayText,
+                        modifier = Modifier.padding(AppSpacing.md),
+                    )
+                }
             }
             if (item.isStreaming) {
                 StreamingCursor()

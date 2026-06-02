@@ -14,6 +14,8 @@ import com.aetherchat.domain.model.ChatStreamEvent
 import com.aetherchat.domain.model.ContentBlock
 import com.aetherchat.domain.model.MessageStatus
 import com.aetherchat.domain.model.Role
+import com.aetherchat.feature.tools.search.SearxngSearchProvider
+import com.aetherchat.feature.tools.search.SearchResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -227,7 +229,17 @@ class ChatViewModel(
                 )
             )
 
-            streamResponse(conversationId)
+            // 如果启用了网络搜索，先执行搜索
+            var searchResults: List<SearchResult> = emptyList()
+            if (_uiState.value.webSearchEnabled) {
+                val searxngUrl = prefs.getString("searxng_url", "") ?: ""
+                if (searxngUrl.isNotBlank()) {
+                    val searchProvider = SearxngSearchProvider(searxngUrl)
+                    searchResults = searchProvider.search(text, 5).getOrDefault(emptyList())
+                }
+            }
+
+            streamResponse(conversationId, searchResults)
         }
     }
 
@@ -272,7 +284,7 @@ class ChatViewModel(
         return id
     }
 
-    private suspend fun streamResponse(conversationId: String) {
+    private suspend fun streamResponse(conversationId: String, searchResults: List<SearchResult> = emptyList()) {
         val state = _uiState.value
         val providerId = state.providerId
         val modelId = state.modelId
@@ -347,15 +359,33 @@ class ChatViewModel(
             )
         )
 
-        val chatMessages = _uiState.value.messages
+        // 构建消息列表，包含系统提示词和搜索结果
+        val chatMessages = mutableListOf<ChatMessage>()
+
+        // 添加系统提示词
+        val systemPrompt = state.systemPrompt
+        if (systemPrompt != null && systemPrompt.isNotBlank()) {
+            chatMessages.add(ChatMessage(role = Role.SYSTEM, content = systemPrompt))
+        }
+
+        // 如果有搜索结果，添加搜索上下文
+        if (searchResults.isNotEmpty()) {
+            val searchContext = buildSearchContext(searchResults)
+            chatMessages.add(ChatMessage(role = Role.SYSTEM, content = searchContext))
+        }
+
+        // 添加历史消息
+        _uiState.value.messages
             .filter { it.status != MessageStatus.ERROR && it.id != assistantId }
-            .map { item ->
-                ChatMessage(
-                    role = when (item.role) {
-                        MessageRole.USER -> Role.USER
-                        MessageRole.ASSISTANT -> Role.ASSISTANT
-                    },
-                    content = item.content,
+            .forEach { item ->
+                chatMessages.add(
+                    ChatMessage(
+                        role = when (item.role) {
+                            MessageRole.USER -> Role.USER
+                            MessageRole.ASSISTANT -> Role.ASSISTANT
+                        },
+                        content = item.content,
+                    )
                 )
             }
 
@@ -555,6 +585,18 @@ class ChatViewModel(
 
     fun updateInputText(text: String) {
         _uiState.update { it.copy(inputText = text) }
+    }
+
+    private fun buildSearchContext(results: List<SearchResult>): String {
+        if (results.isEmpty()) return ""
+        val sb = StringBuilder("以下是网络搜索结果，请参考这些信息回答用户问题：\n\n")
+        results.forEachIndexed { index, result ->
+            sb.append("[${index + 1}] ${result.title}\n")
+            sb.append("来源：${result.url}\n")
+            sb.append("摘要：${result.snippet}\n\n")
+        }
+        sb.append("请根据以上搜索结果回答用户的问题，如果搜索结果不相关，请忽略。")
+        return sb.toString()
     }
 
     fun toggleWebSearch() {

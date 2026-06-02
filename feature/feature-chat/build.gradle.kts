@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":core:core-data"))
     implementation(project(":core:core-network"))
     implementation(project(":core:core-crypto"))
+    implementation(project(":feature:feature-tools"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
