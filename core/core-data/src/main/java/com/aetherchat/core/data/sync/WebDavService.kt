@@ -75,7 +75,7 @@ class WebDavService(
                 if (!response.isSuccessful && response.code != 207) {
                     throw Exception("WebDAV list failed: HTTP ${response.code}")
                 }
-                val body = response.body?.string() ?: return@withContext emptyList()
+                val body = response.body?.string() ?: return@runCatching emptyList()
                 parseFileList(body)
             }
         }
@@ -122,7 +122,7 @@ class WebDavService(
                     .addHeader("Authorization", authHeader)
                     .method("MKCOL", null)
                     .build()
-                client.newCall(request).execute()
+                client.newCall(request).execute().close()
             }
         }
 
