@@ -9,7 +9,7 @@ data object OnboardingRoute
 data object ConversationsRoute
 
 @Serializable
-data class ChatRoute(val conversationId: String)
+data class ChatRoute(val conversationId: String, val assistantId: String? = null)
 
 @Serializable
 data object ProvidersRoute
@@ -28,3 +28,6 @@ data object AssistantsRoute
 
 @Serializable
 data object CreateAssistantRoute
+
+@Serializable
+data class AssistantDetailRoute(val assistantId: String)

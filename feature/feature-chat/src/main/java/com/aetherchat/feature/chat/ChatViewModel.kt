@@ -34,12 +34,33 @@ class ChatViewModel(
 
     private var streamingJob: Job? = null
 
-    fun loadConversation(conversationId: String) {
+    fun loadConversation(conversationId: String, assistantId: String? = null) {
         streamingJob?.cancel()
         _uiState.update { ChatUiState() }
 
         viewModelScope.launch {
             loadProviders()
+
+            // 如果有助手ID，先加载助手设置
+            var assistantSystemPrompt: String? = null
+            var assistantProviderId: String? = null
+            var assistantModelId: String? = null
+            var assistantTemperature: Float? = null
+            if (assistantId != null) {
+                val assistant = database.assistantDao().getById(assistantId)
+                if (assistant != null) {
+                    assistantSystemPrompt = assistant.systemPrompt
+                    assistantProviderId = assistant.providerId
+                    assistantModelId = assistant.modelId
+                    assistantTemperature = assistant.temperature
+                    _uiState.update {
+                        it.copy(
+                            title = "与 ${assistant.name} 对话",
+                            systemPrompt = assistant.systemPrompt,
+                        )
+                    }
+                }
+            }
 
             if (conversationId.isNotBlank()) {
                 val conversation = database.conversationDao().getById(conversationId)
@@ -50,31 +71,35 @@ class ChatViewModel(
                             title = conversation.title,
                             providerId = conversation.providerId,
                             modelId = conversation.modelId,
+                            systemPrompt = conversation.systemPrompt,
                         )
                     }
                     loadModels(conversation.providerId)
                     loadMessages(conversationId)
                 }
             } else {
-                val defaultProviderId = prefs.getString("default_provider_id", "") ?: ""
-                val defaultModelId = prefs.getString("default_model_id", "") ?: ""
+                // 新对话：优先使用助手设置，其次使用默认设置
+                val providerId = assistantProviderId
+                    ?: prefs.getString("default_provider_id", "") ?: ""
+                val modelId = assistantModelId
+                    ?: prefs.getString("default_model_id", "") ?: ""
                 val webSearchOn = prefs.getBoolean("web_search_enabled", false)
                 val sttOn = prefs.getBoolean("stt_enabled", false)
 
-                val providerId = if (defaultProviderId.isNotEmpty()) {
-                    val exists = _uiState.value.availableProviders.any { it.id == defaultProviderId }
-                    if (exists) defaultProviderId else ""
+                val effectiveProviderId = if (providerId.isNotEmpty()) {
+                    val exists = _uiState.value.availableProviders.any { it.id == providerId }
+                    if (exists) providerId else ""
                 } else ""
 
-                if (providerId.isNotEmpty()) {
-                    _uiState.update { it.copy(providerId = providerId) }
-                    loadModels(providerId)
-                    val modelId = if (defaultModelId.isNotEmpty()) {
-                        val modelExists = _uiState.value.availableModels.any { it.id == defaultModelId }
-                        if (modelExists) defaultModelId else ""
+                if (effectiveProviderId.isNotEmpty()) {
+                    _uiState.update { it.copy(providerId = effectiveProviderId) }
+                    loadModels(effectiveProviderId)
+                    val effectiveModelId = if (modelId.isNotEmpty()) {
+                        val modelExists = _uiState.value.availableModels.any { it.id == modelId }
+                        if (modelExists) modelId else ""
                     } else ""
-                    if (modelId.isNotEmpty()) {
-                        _uiState.update { it.copy(modelId = modelId) }
+                    if (effectiveModelId.isNotEmpty()) {
+                        _uiState.update { it.copy(modelId = effectiveModelId) }
                     } else {
                         val firstModel = _uiState.value.availableModels.firstOrNull()
                         if (firstModel != null) {
@@ -97,6 +122,8 @@ class ChatViewModel(
                     it.copy(
                         webSearchEnabled = webSearchOn,
                         sttEnabled = sttOn,
+                        systemPrompt = assistantSystemPrompt,
+                        temperature = assistantTemperature ?: 0.7f,
                     )
                 }
             }

@@ -11,6 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.aetherchat.app.onboarding.OnboardingScreen
+import com.aetherchat.feature.assistants.AssistantDetailScreen
+import com.aetherchat.feature.assistants.AssistantDetailViewModel
 import com.aetherchat.feature.assistants.AssistantsScreen
 import com.aetherchat.feature.assistants.AssistantsViewModel
 import com.aetherchat.feature.assistants.CreateAssistantScreen
@@ -58,6 +60,10 @@ fun AetherChatNavHost(
                     val id = viewModel.createNewConversation()
                     navController.navigate(ChatRoute(id))
                 },
+                onNewConversationWithAssistant = { assistantId ->
+                    val id = viewModel.createNewConversation()
+                    navController.navigate(ChatRoute(id, assistantId))
+                },
                 onNavigateToSettings = { navController.navigate(SettingsRoute) },
                 onNavigateToProviders = { navController.navigate(ProvidersRoute) },
                 onNavigateToAssistants = { navController.navigate(AssistantsRoute) },
@@ -69,6 +75,7 @@ fun AetherChatNavHost(
             ChatScreen(
                 viewModel = viewModel,
                 conversationId = route.conversationId,
+                assistantId = route.assistantId,
                 onBack = { navController.popBackStack() },
             )
         }
@@ -110,7 +117,12 @@ fun AetherChatNavHost(
             AssistantsScreen(
                 viewModel = viewModel,
                 onNavigateToCreate = { navController.navigate(CreateAssistantRoute) },
-                onNavigateToDetail = { },
+                onNavigateToDetail = { id -> navController.navigate(AssistantDetailRoute(id)) },
+                onUseAssistant = { assistantId ->
+                    navController.navigate(ChatRoute("", assistantId)) {
+                        popUpTo<ConversationsRoute> { inclusive = false }
+                    }
+                },
                 onBack = { navController.popBackStack() },
             )
         }
@@ -119,6 +131,15 @@ fun AetherChatNavHost(
             CreateAssistantScreen(
                 viewModel = viewModel,
                 onCreated = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable<AssistantDetailRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<AssistantDetailRoute>()
+            val viewModel: AssistantDetailViewModel = koinViewModel()
+            AssistantDetailScreen(
+                viewModel = viewModel,
+                assistantId = route.assistantId,
                 onBack = { navController.popBackStack() },
             )
         }

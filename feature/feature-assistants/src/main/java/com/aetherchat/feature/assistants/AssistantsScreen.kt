@@ -40,6 +40,7 @@ fun AssistantsScreen(
     viewModel: AssistantsViewModel,
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onUseAssistant: (String) -> Unit,
     onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -88,6 +89,7 @@ fun AssistantsScreen(
                     AssistantCard(
                         assistant = assistant,
                         onClick = { onNavigateToDetail(assistant.id) },
+                        onUse = { onUseAssistant(assistant.id) },
                     )
                 }
             }
@@ -99,6 +101,7 @@ fun AssistantsScreen(
 private fun AssistantCard(
     assistant: Assistant,
     onClick: () -> Unit,
+    onUse: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -134,6 +137,11 @@ private fun AssistantCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+            }
+            androidx.compose.material3.TextButton(
+                onClick = onUse,
+            ) {
+                Text("使用")
             }
         }
     }

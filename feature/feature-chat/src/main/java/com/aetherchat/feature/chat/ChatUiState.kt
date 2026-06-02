@@ -8,6 +8,8 @@ data class ChatUiState(
     val title: String = "",
     val providerId: String = "",
     val modelId: String = "",
+    val systemPrompt: String? = null,
+    val temperature: Float = 0.7f,
     val availableProviders: List<ProviderOption> = emptyList(),
     val availableModels: List<ModelOption> = emptyList(),
     val showProviderPicker: Boolean = false,

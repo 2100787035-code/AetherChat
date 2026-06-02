@@ -59,14 +59,15 @@ import com.aetherchat.core.ui.theme.AppSpacing
 fun ChatScreen(
     viewModel: ChatViewModel,
     conversationId: String,
+    assistantId: String? = null,
     onBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(conversationId) {
-        viewModel.loadConversation(conversationId)
+    LaunchedEffect(conversationId, assistantId) {
+        viewModel.loadConversation(conversationId, assistantId)
     }
 
     LaunchedEffect(uiState.errorMessage) {

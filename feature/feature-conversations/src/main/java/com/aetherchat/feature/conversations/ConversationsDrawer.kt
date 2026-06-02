@@ -55,6 +55,7 @@ fun ConversationsDrawer(
     viewModel: ConversationsViewModel,
     onConversationClick: (String) -> Unit,
     onNewConversation: () -> Unit,
+    onNewConversationWithAssistant: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToProviders: () -> Unit,
     onNavigateToAssistants: () -> Unit,
@@ -79,11 +80,20 @@ fun ConversationsDrawer(
                 "AetherChat",
                 style = MaterialTheme.typography.headlineMedium,
             )
-            Text(
-                "✏️",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.clickable(onClick = onNewConversation),
-            )
+            Row {
+                Text(
+                    "🤖",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier
+                        .clickable(onClick = onNavigateToAssistants)
+                        .padding(horizontal = AppSpacing.xs),
+                )
+                Text(
+                    "✏️",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.clickable(onClick = onNewConversation),
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(AppSpacing.md))
