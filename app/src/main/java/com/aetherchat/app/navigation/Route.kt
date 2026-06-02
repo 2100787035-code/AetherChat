@@ -25,3 +25,6 @@ data object SettingsRoute
 
 @Serializable
 data object AssistantsRoute
+
+@Serializable
+data object CreateAssistantRoute
