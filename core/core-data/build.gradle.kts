@@ -28,8 +28,8 @@ dependencies {
     implementation(project(":core:core-crypto"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
+    api(libs.room.runtime)
+    api(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.sqlcipher)
     implementation("androidx.sqlite:sqlite:2.4.0")
