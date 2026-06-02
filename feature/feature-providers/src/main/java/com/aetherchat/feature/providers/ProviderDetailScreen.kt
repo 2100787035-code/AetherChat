@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.alpha
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -294,8 +295,9 @@ private fun ModelRow(
                 style = MaterialTheme.typography.bodyMedium,
             )
             if (item.model.contextWindow != null) {
+                val contextWindow = item.model.contextWindow
                 Text(
-                    text = "${item.model.contextWindow / 1000}k",
+                    text = "${contextWindow / 1000}k",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
