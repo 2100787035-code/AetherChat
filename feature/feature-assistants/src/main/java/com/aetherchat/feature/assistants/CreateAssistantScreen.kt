@@ -72,7 +72,7 @@ fun CreateAssistantScreen(
                         modifier = Modifier.clickable { viewModel.loadPreset(preset) },
                         shape = AppShape.Chip,
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        tonalElevation = androidx.compose.material3.CardDefaults.cardElevation(),
+                        tonalElevation = 2.dp,
                     ) {
                         Column(
                             modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
